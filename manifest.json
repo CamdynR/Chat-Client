@@ -1,0 +1,33 @@
+{
+  "manifest_version": 2,
+  "name": "Stream with Me",
+  "description": "Watch Amazon Prime Videos with your friends!",
+  "version": "0.0.1",
+  "icons": {
+    "128": "assetts/images/logo/popcorn-128.png",
+    "48": "assetts/images/logo/popcorn-48.png"
+  },
+  "browser_action": {
+    "default_icon": "assetts/images/logo/popcorn-16.png",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "activeTab", "webRequest", "*://*.amazon.com/*/video/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.com/*/video/*",
+        "*://*.crunchyroll.com/*/*"
+      ],
+      "all_frames": true,
+      "js": ["assetts/scripts/content.js"]
+    }
+  ],
+  "externally_connectable": {
+    "matches": [
+      "*://*.amazon.com/*/video/*",
+      "*://*.crunchyroll.com/*/*"
+    ]
+  }
+}

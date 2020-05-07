@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temp</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #swm-message {
+      border: none;
+      border-radius: 3px;
+      font-size: 1.3em;
+      margin-bottom: 10px;
+      padding: 8px;
+      height: 25px;
+      width: 90%;
+    }
+
+    #swm-message:focus {
+      outline: none;
+    }
+
+    #swm-chatWindow {
+      align-items: flex-end;
+      background-color: lightgray;
+      display: grid;
+      height: 100vh;
+      justify-items: center;
+      position: absolute;
+      right: 0;
+      width: 20vw;
+    }
+  </style>
+</head>
+<body>
+  <div id="swm-chatWindow">
+    <input id="swm-message" name="message" type="text">
+  </div>
+</body>
+</html>
