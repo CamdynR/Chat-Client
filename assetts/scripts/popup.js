@@ -33,7 +33,7 @@ backTen.addEventListener('click', () => {
 // Event listener for the start button
 startBtn.addEventListener('click', () => {
   let text = document.getElementById('startButtonText');
-  if(text.innerHTML == 'START') {
+  if (text.innerHTML == 'START') {
     sendMessage('START');
     text.innerHTML = 'STOP'
   } else {
@@ -57,12 +57,26 @@ chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     // Detects if the web player is playing or not, 
     // and toggles the play/pause buttons
-    if(request == 'PLAY') {
+    if (!request.paused) {
       playBtn.style.display = 'none';
       pauseBtn.style.display = 'block';
-    } else if (request == 'PAUSE') {
+    } else if (request.paused) {
       playBtn.style.display = 'block';
       pauseBtn.style.display = 'none';
     }
+
+    // Detects if the chat window is open or not, 
+    // and toggles the start/stop button
+    let text = document.getElementById('startButtonText');
+    if (request.partyOpen) {
+      text.innerHTML = 'STOP';
+    }
   }
 );
+
+// Sends off a message saying it has been opened, this is to
+// received a message to see if the video player is playing or
+// not
+window.addEventListener('DOMContentLoaded', () => {
+  sendMessage('POPUP OPENED');
+});

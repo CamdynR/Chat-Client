@@ -1,13 +1,35 @@
 // Main DOM manipulation script
 // Also referred to as the content script
 
-let webPlayers = {
-  amazon: '.webPlayerContainer video',
-  crunchyroll: 'player0'
-};
+var videoPlayerElem = '';
+var partyOpen = false;
+var overAnHour = false;
 
-let currWebsite = window.location.hostname.replace('www.','');
-currWebsite = currWebsite.replace('.com','');
+// Code used from MDN MutationObserver Example here
+// URL: https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+// Listens to see when the video element is added to the page,
+// since it's added with a script some time after load
+const targetNode = document.body;
+const config = { childList: true, subtree: true };
+const callback = function (mutationsList, observer) {
+  for (let mutation of mutationsList) {
+    if (mutation.type === 'childList') {
+      if (mutation.addedNodes.length > 0) {
+        if (mutation.addedNodes[0].localName == 'video') {
+          addVideoListeners(mutation.addedNodes[0]);
+          videoPlayerElem = mutation.addedNodes[0];
+          videoPlayerElem.id = 'videoPlayer';
+          if (videoPlayer.duration >= 3600) {
+            overAnHour = true;
+          }
+          observer.disconnect();
+        }
+      }
+    }
+  }
+};
+const observer = new MutationObserver(callback);
+observer.observe(targetNode, config);
 
 // @param message: Takes a string and sends that string
 // from thi Content script to the extension
@@ -15,107 +37,139 @@ function sendMessage(message) {
   chrome.runtime.sendMessage(message);
 }
 
-// Waits for page to load so the video player can be found
-window.addEventListener('load', () => {
-  // Used to send which URL the current tab is upon loading
-  sendMessage({message: 'Content Loaded'});
+// @param videoPlayer: Takes in a video DOM element
+// Adds listeners to see if the video player is playing or not
+function addVideoListeners(videoPlayer) {
+  // If the video player is playing, tell the extension
+  videoPlayer.addEventListener('play', () => { 
+    console.log('PLAY');
+  });
 
-  setTimeout(() => {
-    // Grabs the video player element
-    let videoPlayer = document.querySelectorAll(webPlayers[`${currWebsite}`])[0];
-    if(currWebsite == 'crunchyroll') {
-      videoPlayer = document.getElementById(`${webPlayers[`${currWebsite}`]}`);
-    }
-
-    // If the video player is playing, tell the extension
-    videoPlayer.addEventListener('play', () => { 
-      console.log('PLAY');
-      sendMessage('PLAY');
-    });
-
-    // Similarly, if the video player is paused, tell the extension
-    videoPlayer.addEventListener('pause', () => {
-       console.log('PAUSE');
-       sendMessage('PAUSE');
-    });
-  }, 2000);
-});
+  // Similarly, if the video player is paused, tell the extension
+  videoPlayer.addEventListener('pause', () => {
+     console.log('PAUSE');
+  });
+}
 
 // Receives actions (as strings) from media buttons
 chrome.runtime.onMessage.addListener(
   function(message, sender, sendResponse) {
-    // Grabs the video player element
-    let videoPlayer = document.querySelectorAll(webPlayers[`${currWebsite}`])[0];
-    if(currWebsite == 'crunchyroll') {
-      videoPlayer = document.querySelector(`${webPlayers[`${currWebsite}`]}`);
-    }
-  
-    // Controls the video player based on the received actions
-    if(message.message == 'PLAY') {
-      videoPlayer.play();
-      sendMessage('PLAY');
-    } else if(message.message == 'PAUSE') {
-      videoPlayer.pause();
-      sendMessage('PAUSE');
-    } else if(message.message == 'SKIP') {
-      videoPlayer.currentTime += 10;
-      sendMessage('SKIP');
-    } else if(message.message == 'BACK') {
-      videoPlayer.currentTime -= 10;
-      sendMessage('BACK');
-    } else if(message.message == 'START') {
-      startParty();
-    } else if(message.message == 'STOP') {
-      stopParty();
+    if(videoPlayerElem != '') {
+      // Controls the video player based on the received actions
+      if (message.message == 'PLAY') {
+        videoPlayerElem.play();
+      } else if (message.message == 'PAUSE') {
+        videoPlayerElem.pause();
+      } else if (message.message == 'SKIP') {
+        videoPlayerElem.currentTime += 10;
+      } else if (message.message == 'BACK') {
+        videoPlayerElem.currentTime -= 10;
+      } else if (message.message == 'START') {
+        startParty();
+      } else if (message.message == 'STOP') {
+        stopParty();
+      } else if(message.message == 'POPUP OPENED') {
+        sendMessage({
+            paused: videoPlayerElem.paused,
+            partyOpen: partyOpen
+          });
+      } else {
+        console.log(message.message);
+      }
     } else {
-      console.log(message.message);
+      console.error('Video player element has not yet loaded');
     }
   }
 );
 
-// Opens the party side window
+// Opens the chat window and starts Stream with Me party
 function startParty() {
+  let videoUI = document.getElementsByClassName('webPlayerContainer')[0].childNodes[0];
+  videoUI.style = 'height: 100%; width: calc(100% - 20vw);';
+
   // Create the chat window div
   let chatWindow = document.createElement('div');
   chatWindow.id = 'swm-chatWindow';
-  chatWindow.style.alignItems = 'flex-end';
-  chatWindow.style.backgroundColor = 'lightgray';
-  chatWindow.style.display = 'grid';
-  chatWindow.style.height = '100vh';
-  chatWindow.style.justifyItems = 'center';
-  chatWindow.style.position = 'absolute';
-  chatWindow.style.right = '0';
-  chatWindow.style.width = '20vw';
-  chatWindow.style.zIndex = '99999';
-
-  // Create the message input for the bottom
-  let msgInput = document.createElement('input');
-  msgInput.type = 'text';
-  msgInput.name = 'message';
-  msgInput.style.border = 'none';
-  msgInput.style.borderRadius = '3px !important';
-  msgInput.style.fontSize = '1.3em !important';
-  msgInput.style.marginBottom = '10px';
-  msgInput.style.padding = '8px !important';
-  msgInput.style.height = '25px !important';
-  msgInput.style.width = '90% !important';
-  chatWindow.appendChild(msgInput);
+  chatWindow.style = 'align-items:flex-end !important;background-color:lightgray !important;display:grid !important;grid-template-rows:18fr 1fr;height:100vh !important;justify-items:center !important;position:fixed !important;right:0px !important;top:0px !important;width:20vw !important;z-index:99999 !important;';
   
   // Grab the page body and append these elements
   let body = document.querySelectorAll('body')[0];
   body.insertBefore(chatWindow, body.childNodes[0]);
 
-  let amazonPlayer = document.getElementById('dv-web-player');
-  amazonPlayer.style.width = 'calc(100% - 20vw) !important';
-  amazonPlayer.style.position = "absolute !important";
-  amazonPlayer.style.left = "0 !important";
+  // Create the area where user messages will appear
+  let msgArea = document.createElement('ul');
+  msgArea.id = 'swm-msgArea';
+  msgArea.style = 'justify-self:flex-start;margin-left: 5%;font-size: 1.35em;width: 94.6%;overflow-y: scroll;flex-direction: column;display: flex;height: auto;max-height: 100%;';
+
+  // Create the message input for the bottom
+  let msgForm = document.createElement('form');
+  msgForm.id = 'swm-msgForm';
+  msgForm.style = 'width:90% !important'
+
+  // Handle the user messages
+  msgForm.addEventListener('submit', e => {
+    e.preventDefault();
+    appendMessage('You');
+  });
+
+  let msgInput = document.createElement('input');
+  msgInput.id = 'swm-msgInput';
+  msgInput.type = 'text !important';
+  msgInput.name = 'message !important';
+  msgInput.autocomplete = 'off';
+  msgInput.style = 'border:none !important;border-radius:3px !important;font-size:1.3em !important;padding:8px !important;height:25px !important;width:100% !important;';
+  msgForm.appendChild(msgInput);
+  chatWindow.appendChild(msgArea);
+  chatWindow.appendChild(msgForm);
+
+  partyOpen = true;
 }
 
-// Closes Side Window
+// Closes the chat window and stops Stream with Me party
 function stopParty() {
-  let amazonPlayer = document.getElementById('dv-web-player');
-  amazonPlayer.style.width = '100% !important;';
+  let videoUI = document.getElementsByClassName('webPlayerContainer')[0].childNodes[0];
+  videoUI.style = 'height: 100%; width: 100%;';
 
   let chatWindow = document.getElementById('swm-chatWindow');
-  chatWindow.style.display = 'none';
+  chatWindow.style = 'display:none !important;';
+
+  partyOpen = false;
+}
+
+// Adds event listeners to the chat window to parse user messages
+function appendMessage(user) {
+  let msgArea = document.getElementById('swm-msgArea');
+  let msgInput = document.getElementById('swm-msgInput');
+  
+  let message = msgInput.value;
+  let messageElem = document.createElement('li');
+  messageElem.style = 'list-style-type: none;margin-bottom: 5px;';
+  let currTimeVal = videoPlayerElem.currentTime;
+  messageElem.innerHTML = `<span style="color:gray;cursor:pointer;" onclick="document.getElementById('videoPlayer').currentTime = ${currTimeVal}">${convertTime(currTimeVal)}</span> ${user}: ${message}`;
+  msgArea.appendChild(messageElem);
+  msgInput.value = '';
+
+  msgArea.scrollTop = msgArea.scrollHeight;
+}
+
+// Converts seconds to 00:00:00 or 00:00 depending on length
+function convertTime(inptSeconds) {
+  let hours = Math.floor((inptSeconds/60)/60);
+  inptSeconds -= (hours * 60 * 60);
+  let minutes = Math.floor(inptSeconds / 60);
+  inptSeconds -= (minutes * 60);
+  let seconds = Math.floor(inptSeconds);
+  
+  // Format the numbers
+  hours = ("0" + hours).slice(-2);
+  minutes = ("0" + minutes).slice(-2);
+  seconds = ("0" + seconds).slice(-2);
+
+  let convertedTime = `${minutes}:${seconds}`;
+
+  if (overAnHour) {
+    convertedTime = `${hours}:${minutes}:${seconds}`;
+  }
+
+  return convertedTime
 }
