@@ -30,9 +30,10 @@
 #streamWM #buttonRow {
   align-items: center;
   display: grid;
-  grid-template-areas: 'media start';
+  grid-template-areas: 'host join';
   grid-template-columns: 1fr 1fr;
   justify-items: center;
+  margin: 15px 0 12px 0;
 }
 
 #streamWM #buttonRow>button {
@@ -42,7 +43,7 @@
   border: none;
   height: 30px;
   transition: 0.2s ease all;
-  width: 100px;
+  width: 120px;
 }
 
 #streamWM #buttonRow>button:hover {
