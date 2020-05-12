@@ -21,7 +21,10 @@
         "*://*.crunchyroll.com/*/*"
       ],
       "all_frames": true,
-      "js": ["assetts/scripts/content.js"],
+      "js": [
+        "assetts/scripts/socket.io.js",
+        "assetts/scripts/content.js"]
+        ,
       "run_at": "document_idle"
     }
   ],

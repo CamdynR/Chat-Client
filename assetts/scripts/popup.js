@@ -1,9 +1,9 @@
 // Script document for the popup page
 
-let playBtn = document.getElementById('playButton');
-let pauseBtn = document.getElementById('pauseButton');
-let skipTen = document.getElementById('skipForward');
-let backTen = document.getElementById('skipBack');
+// let playBtn = document.getElementById('playButton');
+// let pauseBtn = document.getElementById('pauseButton');
+// let skipTen = document.getElementById('skipForward');
+// let backTen = document.getElementById('skipBack');
 let hostBtn = document.getElementById('hostButton');
 let joinBtn = document.getElementById('joinButton');
 
@@ -62,19 +62,19 @@ chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     // Detects if the web player is playing or not, 
     // and toggles the play/pause buttons
-    if (!request.paused) {
-      playBtn.style.display = 'none';
-      pauseBtn.style.display = 'block';
-    } else if (request.paused) {
-      playBtn.style.display = 'block';
-      pauseBtn.style.display = 'none';
-    }
+  //   if (!request.paused) {
+  //     playBtn.style.display = 'none';
+  //     pauseBtn.style.display = 'block';
+  //   } else if (request.paused) {
+  //     playBtn.style.display = 'block';
+  //     pauseBtn.style.display = 'none';
+  //   }
 
-    // Detects if the chat window is open or not, 
-    // and toggles the start/stop button
-    let text = document.getElementById('startButtonText');
-    if (request.partyOpen) {
-      text.innerHTML = 'STOP';
-    }
-  }
+  //   // Detects if the chat window is open or not, 
+  //   // and toggles the start/stop button
+  //   let text = document.getElementById('startButtonText');
+  //   if (request.partyOpen) {
+  //     text.innerHTML = 'STOP';
+  //   }
+  // }
 );

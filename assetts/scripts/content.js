@@ -1,6 +1,8 @@
 // Main DOM manipulation script
 // Also referred to as the content script
 
+const socket = io('https://host.streamwithme.net', { secure: true });
+
 var videoPlayerElem = '';
 var partyOpen = false;
 var overAnHour = false;

@@ -1,0 +1,34 @@
+{
+  "name": "stream-with-me",
+  "version": "1.0.0",
+  "description": "An app to stream and chat about shows in real time",
+  "main": "assetts/scripts/content.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CamdynR/Stream-with-Me.git"
+  },
+  "keywords": [
+    "Stream",
+    "Party",
+    "Netflix",
+    "Party",
+    "Amazon",
+    "Amazon",
+    "Prime",
+    "Prime",
+    "Video"
+  ],
+  "author": "Camdyn Rasque",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CamdynR/Stream-with-Me/issues"
+  },
+  "homepage": "https://github.com/CamdynR/Stream-with-Me#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  }
+}
