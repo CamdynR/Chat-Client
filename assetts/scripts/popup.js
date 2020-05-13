@@ -12,7 +12,8 @@ port.onMessage.addListener(function(msg) {
   if (msg == 'Link Open') {
     let roomCodeInput = document.getElementById('roomCode');
     sendMessage({ message: 'JOIN', roomCode: roomCodeInput.value });
-    window.close();
+    console.log(`JOIN: ${roomCode}`);
+    //window.close();
   }
 });
 
@@ -20,7 +21,7 @@ port.onMessage.addListener(function(msg) {
 // received a message to see if the video player is playing or
 // not
 window.addEventListener('DOMContentLoaded', () => {
-  sendMessage({ message: 'POPUP OPENED' });
+  // sendMessage({ message: 'POPUP OPENED' });
 });
 
 // Event listener for the start button

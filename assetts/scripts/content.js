@@ -34,6 +34,10 @@ const callback = function (mutationsList, observer) {
 const observer = new MutationObserver(callback);
 observer.observe(targetNode, config);
 
+window.addEventListener('popstate', function (event) {
+  console.log(location.href);
+});
+
 // @param message: Takes a string and sends that string
 // from thi Content script to the extension
 function sendMessage(message) {
@@ -60,32 +64,33 @@ chrome.runtime.onMessage.addListener(
     if(message.message == 'OPENLINK') {
       getRoomURL(message.roomCode);
     } else {
-    if(videoPlayerElem != '') {
-      // Controls the video player based on the received actions
-      // if (message.message == 'PLAY') {
-      //   videoPlayerElem.play();
-      // } else if (message.message == 'PAUSE') {
-      //   videoPlayerElem.pause();
-      // } else if (message.message == 'SKIP') {
-      //   videoPlayerElem.currentTime += 10;
-      // } else if (message.message == 'BACK') {
-      //   videoPlayerElem.currentTime -= 10;
-      // } else 
-      if (message.message == 'HOST') {
-        openSidebar(message);
-      } else if (message.message == 'JOIN') {
-        openSidebar(message);
-      } else if(message.message == 'POPUP OPENED') {
-        //sendMessage({
-        //  paused: videoPlayerElem.paused,
-        //  partyOpen: partyOpen
-        //});
+      if(videoPlayerElem != '') {
+        // Controls the video player based on the received actions
+        // if (message.message == 'PLAY') {
+        //   videoPlayerElem.play();
+        // } else if (message.message == 'PAUSE') {
+        //   videoPlayerElem.pause();
+        // } else if (message.message == 'SKIP') {
+        //   videoPlayerElem.currentTime += 10;
+        // } else if (message.message == 'BACK') {
+        //   videoPlayerElem.currentTime -= 10;
+        // } else 
+        if (message.message == 'HOST') {
+          openSidebar(message);
+        } else if (message.message == 'JOIN') {
+          console.log(`JOIN: ${message.roomCode}`);
+          openSidebar(message);
+        } else if (message.message == 'POPUP OPENED') {
+          //sendMessage({
+          //  paused: videoPlayerElem.paused,
+          //  partyOpen: partyOpen
+          //});
+        } else {
+          console.log(message.message);
+        }
       } else {
-        console.log(message.message);
+        console.error('Video player element has not yet loaded');
       }
-    } else {
-      console.error('Video player element has not yet loaded');
-    }
     }
   }
 );
