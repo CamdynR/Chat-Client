@@ -57,6 +57,9 @@ function addVideoListeners(videoPlayer) {
 // Receives actions (as strings) from media buttons
 chrome.runtime.onMessage.addListener(
   function(message, sender, sendResponse) {
+    if(message.message == 'OPENLINK') {
+      getRoomURL(message.roomCode);
+    } else {
     if(videoPlayerElem != '') {
       // Controls the video player based on the received actions
       // if (message.message == 'PLAY') {
@@ -69,25 +72,26 @@ chrome.runtime.onMessage.addListener(
       //   videoPlayerElem.currentTime -= 10;
       // } else 
       if (message.message == 'HOST') {
-        openSidebar('HOST');
+        openSidebar(message);
       } else if (message.message == 'JOIN') {
-        openSidebar('JOIN');
+        openSidebar(message);
       } else if(message.message == 'POPUP OPENED') {
-        sendMessage({
-          paused: videoPlayerElem.paused,
-          partyOpen: partyOpen
-        });
+        //sendMessage({
+        //  paused: videoPlayerElem.paused,
+        //  partyOpen: partyOpen
+        //});
       } else {
         console.log(message.message);
       }
     } else {
       console.error('Video player element has not yet loaded');
     }
+    }
   }
 );
 
 // Opens the initial sidebar, first step
-function openSidebar(participant) {
+function openSidebar(message) {
   let videoUI = document.getElementsByClassName('webPlayerContainer')[0].childNodes[0];
   videoUI.style = 'height: 100%; width: calc(100% - 20vw);';
 
@@ -101,11 +105,11 @@ function openSidebar(participant) {
   body.insertBefore(chatWindow, body.childNodes[0]);
 
   partyOpen = true;
-  getUserCreateLink(participant);
+  getUserCreateLink(message);
 }
 
 // Gets the user's name, second step
-function getUserCreateLink(participant) {
+function getUserCreateLink(message) {
   // Grab the chat window, create a child element for it to hold
   // the user input and prompt text
   let chat = document.getElementById('swm-chatWindow');
@@ -129,14 +133,6 @@ function getUserCreateLink(participant) {
   enterName.appendChild(nameText);
   enterName.appendChild(nameForm);
 
-  if (participant == 'HOST') {
-    let url = getSessionURL();
-    let giveLink = document.createElement('p');
-    giveLink.innerHTML = `Use this link to let people join:<br>${url}`;
-    giveLink.style = 'margin-top: 60px';
-    enterName.appendChild(giveLink);
-  }
-  
   chat.appendChild(enterName);
 
   let nameFormE = document.getElementById('swm-nameForm');
@@ -145,12 +141,12 @@ function getUserCreateLink(participant) {
     let nameInpE = document.getElementById('swm-nameInput');
     username = nameInpE.value;
     nameInpE.value = '';
-    startChat();
+    startChat(message);
   });
 }
 
 // Closes initial question UI and starts chatting
-function startChat() {
+function startChat(message) {
   let nameWrapper = document.getElementById('swm-enterNameWrapper');
   nameWrapper.style = 'display: none !important;';
   let chatWindow = document.getElementById('swm-chatWindow');
@@ -158,18 +154,12 @@ function startChat() {
   // Create the area where user messages will appear
   let msgArea = document.createElement('ul');
   msgArea.id = 'swm-msgArea';
-  msgArea.style = 'justify-self:flex-start;margin-left: 5%;font-size: 1.35em;width: 94.6%;overflow-y: scroll;flex-direction: column;display: flex;height: auto;max-height: 100%;';
+  msgArea.style = 'justify-self:flex-start;margin-left: 5%;font-size: 1.35em;width: 94.6%;overflow-y: scroll;flex-direction: column;display: flex;height: auto;max-height: calc(100% - 50px);';
 
   // Create the message input for the bottom
   let msgForm = document.createElement('form');
   msgForm.id = 'swm-msgForm';
   msgForm.style = 'width:90% !important'
-
-  // Handle the user messages
-  msgForm.addEventListener('submit', e => {
-    e.preventDefault();
-    appendMessage('You');
-  });
 
   let msgInput = document.createElement('input');
   msgInput.id = 'swm-msgInput';
@@ -180,6 +170,27 @@ function startChat() {
   msgForm.appendChild(msgInput);
   chatWindow.appendChild(msgArea);
   chatWindow.appendChild(msgForm);
+
+  // Handle the user messages
+  msgForm.addEventListener('submit', e => {
+    e.preventDefault();
+    let usrMessage = msgInput.value;
+    emitMessage(usrMessage);
+    appendMessage('You', usrMessage);
+    msgInput.value = '';
+  });
+
+  if (message.message == 'HOST') {
+    createRoom();
+    let giveLink = document.createElement('p');
+    giveLink.id = 'hostLink';
+    chatWindow.insertBefore(giveLink, chatWindow.childNodes[0]);
+  } else if (message.message == 'JOIN') {
+    joinRoom(message.roomCode);
+    let giveLink = document.createElement('p');
+    giveLink.id = 'hostLink';
+    chatWindow.insertBefore(giveLink, chatWindow.childNodes[0]);
+  }
 }
 
 // Closes the chat window and stops Stream with Me party
@@ -194,18 +205,13 @@ function stopParty() {
 }
 
 // Adds event listeners to the chat window to parse user messages
-function appendMessage(user) {
+function appendMessage(user, message) {
   let msgArea = document.getElementById('swm-msgArea');
-  let msgInput = document.getElementById('swm-msgInput');
-  
-  let message = msgInput.value;
   let messageElem = document.createElement('li');
   messageElem.style = 'list-style-type: none;margin-bottom: 5px;';
   let currTimeVal = videoPlayerElem.currentTime;
   messageElem.innerHTML = `<span style="color:gray;cursor:pointer;" onclick="document.getElementById('videoPlayer').currentTime = ${currTimeVal}">${convertTime(currTimeVal)}</span> ${user}: ${message}`;
   msgArea.appendChild(messageElem);
-  msgInput.value = '';
-
   msgArea.scrollTop = msgArea.scrollHeight;
 }
 
@@ -231,8 +237,51 @@ function convertTime(inptSeconds) {
   return convertedTime
 }
 
-// Creates a unique session URL to join for the party
-function getSessionURL() {
-  return 'http://127.5.2.43:3000/A82M1SY';
-  // TODO
+
+/* Below is all of the WebSocket functionality */
+
+// Sends a request to create a new room
+function createRoom() {
+  socket.emit('create-room', { 
+    username: username,
+    roomURL: location.href
+  });
 }
+
+// Response from the server after the room is created
+socket.on('new-room-created', newRoomCode => {
+  let giveLink = document.getElementById('hostLink');
+  giveLink.innerHTML = `<b style="color:black;font-size:1.1em;">Room Code:</b> ${newRoomCode}`;
+  giveLink.style = 'font-size:1.3em;position: absolute;top: 20px;';
+});
+
+// Sends a request to join an existing room
+function joinRoom(roomCode) {
+  socket.emit('create-room', { 
+    username: username,
+    roomCode: roomCode
+  });
+}
+
+socket.on('room-joined', newRoomCode => {
+  let giveLink = document.getElementById('hostLink');
+  giveLink.innerHTML = `<b style="color:black;font-size:1.1em;">Room Code:</b> ${newRoomCode}`;
+  giveLink.style = 'font-size:1.3em;position: absolute;top: 20px;';
+});
+
+// Sends user's message to the server
+function emitMessage(message) {
+  socket.emit('user-message', {username: username, message: message})
+}
+
+socket.on('chat-message', userInfo => {
+  appendMessage(userInfo.username, userInfo.message);
+});
+
+function getRoomURL(roomCode) {
+  socket.emit('get-URL', roomCode);
+}
+
+socket.on('room-URL', roomURL => {
+  sendMessage({ roomURL: roomURL });
+});

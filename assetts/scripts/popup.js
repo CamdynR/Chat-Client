@@ -1,80 +1,64 @@
 // Script document for the popup page
 
-// let playBtn = document.getElementById('playButton');
-// let pauseBtn = document.getElementById('pauseButton');
-// let skipTen = document.getElementById('skipForward');
-// let backTen = document.getElementById('skipBack');
 let hostBtn = document.getElementById('hostButton');
 let joinBtn = document.getElementById('joinButton');
+let roomCodeForm = document.getElementById('roomCodeForm');
 
-// Event listener for the play button
-// playBtn.addEventListener('click', () => {
-//   playBtn.style.display = 'none';
-//   pauseBtn.style.display = 'block';
-//   sendMessage('PLAY');
-// });
+var port = chrome.extension.connect({
+  name: "Background Communication"
+});
 
-// // Event listener for the pause button
-// pauseBtn.addEventListener('click', () => {
-//   pauseBtn.style.display = 'none';
-//   playBtn.style.display = 'block';
-//   sendMessage('PAUSE');
-// });
-
-// // Event listener for the skip forward button
-// skipTen.addEventListener('click', () => {
-//   sendMessage('SKIP');
-// });
-
-// // Event listener for the skip backward button
-// backTen.addEventListener('click', () => {
-//   sendMessage('BACK');
-// });
+port.onMessage.addListener(function(msg) {
+  if (msg == 'Link Open') {
+    let roomCodeInput = document.getElementById('roomCode');
+    sendMessage({ message: 'JOIN', roomCode: roomCodeInput.value });
+    window.close();
+  }
+});
 
 // Sends off a message saying it has been opened, this is to
 // received a message to see if the video player is playing or
 // not
 window.addEventListener('DOMContentLoaded', () => {
-  sendMessage('POPUP OPENED');
+  sendMessage({ message: 'POPUP OPENED' });
 });
 
 // Event listener for the start button
 hostBtn.addEventListener('click', () => {
-  sendMessage('HOST');
+  sendMessage({ message: 'HOST' });
 });
 
 joinBtn.addEventListener('click', () => {
-  sendMessage('JOIN');
+  let joinText = document.getElementById('joinText');
+  if (roomCodeForm.getAttribute('data-display') == 'none') {
+    roomCodeForm.style.display = 'grid';
+    joinText.innerHTML = 'CANCEL';
+    roomCodeForm.setAttribute('data-display', 'grid');
+  } else {
+    roomCodeForm.style.display = 'none';
+    joinText.innerHTML = 'JOIN';
+    roomCodeForm.setAttribute('data-display', 'none');
+  }
 });
+
+roomCodeForm.addEventListener('submit', e => {
+  e.preventDefault();
+  let roomCodeInput = document.getElementById('roomCode');
+  let roomCode = roomCodeInput.value;
+  sendMessage({ message: 'OPENLINK', roomCode: roomCode });
+})
 
 // @param message: Sends the given message from the extention to the current tab
 // (only if that current tab has the URL *://*.amazon.com/*/video/*)
-function sendMessage(message) {
+function sendMessage(data) {
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, {
-      message: message
-    });
+    chrome.tabs.sendMessage(tabs[0].id, data);
   });
 }
 
 // Message handler for messages from the current tab
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    // Detects if the web player is playing or not, 
-    // and toggles the play/pause buttons
-  //   if (!request.paused) {
-  //     playBtn.style.display = 'none';
-  //     pauseBtn.style.display = 'block';
-  //   } else if (request.paused) {
-  //     playBtn.style.display = 'block';
-  //     pauseBtn.style.display = 'none';
-  //   }
-
-  //   // Detects if the chat window is open or not, 
-  //   // and toggles the start/stop button
-  //   let text = document.getElementById('startButtonText');
-  //   if (request.partyOpen) {
-  //     text.innerHTML = 'STOP';
-  //   }
-  // }
+    port.postMessage(request.roomURL);
+  }
 );

@@ -7,19 +7,12 @@
     "128": "assetts/images/logo/popcorn-128.png",
     "48": "assetts/images/logo/popcorn-48.png"
   },
-  "browser_action": {
-    "default_icon": "assetts/images/logo/popcorn-16.png",
-    "default_popup": "popup.html"
-  },
   "permissions": [
-    "activeTab", "webRequest", "*://*.amazon.com/*/video/*"
+    "activeTab", "webRequest", "*://*.amazon.com/*/video/*", "tabs"
   ],
   "content_scripts": [
     {
-      "matches": [
-        "*://*.amazon.com/*/video/*",
-        "*://*.crunchyroll.com/*/*"
-      ],
+      "matches": ["<all_urls>"],
       "all_frames": true,
       "js": [
         "assetts/scripts/socket.io.js",
@@ -28,6 +21,13 @@
       "run_at": "document_idle"
     }
   ],
+  "background": {
+    "scripts": ["assetts/scripts/background.js"]
+  },
+  "browser_action": {
+    "default_icon": "assetts/images/logo/popcorn-16.png",
+    "default_popup": "popup.html"
+  },
   "externally_connectable": {
     "matches": [
       "*://*.amazon.com/*/video/*",

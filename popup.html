@@ -17,19 +17,18 @@
   </header>
 
   <div id="buttonRow">
-    <!-- div id="mediaKeys" class="flex">
-      <img src="assetts/images/icons/png/skip_left_64.png" alt="Skip back 10 seconds button" id="skipBack">
-      <img src="assetts/images/icons/png/play_64.png" alt="Play button" id="playButton">
-      <img src="assetts/images/icons/png/pause_64.png" alt="Pause button" id="pauseButton">
-      <img src="assetts/images/icons/png/skip_right_64.png" alt="Skip forward 10 seconds button" id="skipForward">
-    </div -->
     <button id="hostButton">
       <p>HOST</p>
     </button>
     <button id="joinButton">
-      <p>JOIN</p>
+      <p id="joinText">JOIN</p>
     </button>
   </div>
+
+  <form id="roomCodeForm" data-display="none">
+    <label>Room Code:</label>
+    <input id="roomCode" name="roomCode" type="text" spellcheck="false" autocomplete="off">
+  </form>
 
   <!-- Scripts -->
   <script type="module" src="assetts/scripts/popup.js"></script>
