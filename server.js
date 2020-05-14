@@ -14,6 +14,7 @@ app.use(express.static('public'));
 const io = require('socket.io').listen(server);
 
 io.on('connection', socket => {
+  socket.emit('socket-ID', socket.id);
   socket.on('create-room', roomReq => {
     let newRoomCode = createRoom(roomReq.username, roomReq.roomURL);
     console.log(`Username: ${roomReq.username}`);
@@ -37,6 +38,10 @@ io.on('connection', socket => {
       message: userInfo.message
     });
   });
+  socket.on('user-left', userInfo => {
+    console.log(`${userInfo.username} has left`);
+    socket.leave(`${userInfo.roomCode}`);
+  })
 });
 
 function createRoom(username, roomURL) {
