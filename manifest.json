@@ -51,5 +51,8 @@
       "*://*.amazon.com/*/video/*",
       "*://*.crunchyroll.com/*/*"
     ]
-  }
+  },
+  "web_accessible_resources": [
+    "assetts/scripts/socket.io.js"
+  ]
 }

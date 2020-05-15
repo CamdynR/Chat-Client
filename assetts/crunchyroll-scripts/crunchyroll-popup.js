@@ -3,6 +3,7 @@
 let hostBtn = document.getElementById('hostButton');
 let joinBtn = document.getElementById('joinButton');
 let roomCodeForm = document.getElementById('roomCodeForm');
+let joinRequestOpen = false;
 
 var port = chrome.extension.connect({
   name: "Background Communication"
@@ -30,6 +31,7 @@ roomCodeForm.addEventListener('submit', e => {
   e.preventDefault();
   let roomCodeInput = document.getElementById('roomCode');
   let roomCode = roomCodeInput.value;
+  joinRequestOpen = true;
   port.postMessage(roomCode);
   // sendMessage({ message: 'OPENLINK', roomCode: roomCode });
 })
@@ -45,7 +47,7 @@ function sendMessage(data) {
 // Message handler for messages from the current tab
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    if (request == 'Send join request') {
+    if (joinRequestOpen && request == 'Send join request') {
       let roomCodeInput = document.getElementById('roomCode');
       sendMessage({ message: 'JOIN', roomCode: roomCodeInput.value });
       console.log(`JOIN: ${roomCodeInput.value}`);

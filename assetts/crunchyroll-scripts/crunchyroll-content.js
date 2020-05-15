@@ -90,6 +90,9 @@ function getUserCreateLink(message) {
 
 // Closes initial question UI and starts chatting
 function startChat(message) {
+  // Request the socket ID from the server to signal disconnection later
+  socket.emit('get-socket-ID', {message: 'socketRequest'});
+
   let nameWrapper = document.getElementById('swm-enterNameWrapper');
   nameWrapper.style = 'display: none !important;';
   let chatWindow = document.getElementById('swm-chatWindow');
@@ -186,12 +189,22 @@ function convertTime(inptSeconds) {
 /* Below is all of the WebSocket functionality */
 
 socket.on('socket-ID', serverID => {
+  let socketIOscript = document.createElement('script');
+  socketIOscript.src = chrome.runtime.getURL('assetts/scripts/socket.io.js');
+  socketIOscript.onload = function() {
+      this.remove();
+  };
+  (document.head || document.documentElement).appendChild(socketIOscript);
+
   socketID = serverID;
   let unloadScript = document.createElement('script');
   unloadScript.id = 'swm-unloadScript';
-  unloadScript.innerHTML = "window.addEventListener('beforeunload', () => {" 
-  + ""
+  unloadScript.textContent = "var newSocket = io('https://host.streamwithme.net', { secure: true });"
+  + "window.addEventListener('beforeunload', () => {" 
+  + `newSocket.emit('user-left', {socketID: ${socketID}, username: ${username}, roomCode: ${currRoomCode}});`
   + "});";
+  (document.head||document.documentElement).appendChild(unloadScript);
+  unloadScript.remove();
 });
 
 function createRoom() {
