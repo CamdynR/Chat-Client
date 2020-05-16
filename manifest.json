@@ -53,6 +53,7 @@
     ]
   },
   "web_accessible_resources": [
-    "assetts/scripts/socket.io.js"
+    "assetts/scripts/socket.io.js",
+    "assetts/crunchyroll-scripts/socket.io.js"
   ]
 }

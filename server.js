@@ -15,6 +15,7 @@ const io = require('socket.io').listen(server);
 
 io.on('connection', socket => {
   socket.on('get-socket-ID', request => {
+    console.log(`Socket ID: ${socket.id}`);
     socket.emit('socket-ID', socket.id);
   });
   socket.on('create-room', roomReq => {

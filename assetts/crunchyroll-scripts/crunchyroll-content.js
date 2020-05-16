@@ -15,6 +15,8 @@ function sendMessage(message) {
   chrome.runtime.sendMessage(message);
 }
 
+// Sends message to pop-up upon loading to initiate chat start.
+// Logic to determine if the join request should be accepted is in popup.js
 sendMessage('Send join request');
 
 // Receives actions (as strings) from media buttons
@@ -90,9 +92,6 @@ function getUserCreateLink(message) {
 
 // Closes initial question UI and starts chatting
 function startChat(message) {
-  // Request the socket ID from the server to signal disconnection later
-  socket.emit('get-socket-ID', {message: 'socketRequest'});
-
   let nameWrapper = document.getElementById('swm-enterNameWrapper');
   nameWrapper.style = 'display: none !important;';
   let chatWindow = document.getElementById('swm-chatWindow');
@@ -127,6 +126,7 @@ function startChat(message) {
     msgInput.value = '';
   });
 
+  // Determines now if it's a host or join since setup is the same before this
   if (message.message == 'HOST') {
     createRoom();
     let giveLink = document.createElement('p');
@@ -188,13 +188,15 @@ function convertTime(inptSeconds) {
 
 /* Below is all of the WebSocket functionality */
 
+// Stores Socket-ID to help determine when the user disconnects.
+// Can't access the Window.onbeforeunload from content script so
+// a script with that event is being injected with the Socket-ID instead
 socket.on('socket-ID', serverID => {
+  console.log(`Socket ID: ${serverID}`);
   let socketIOscript = document.createElement('script');
-  socketIOscript.src = chrome.runtime.getURL('assetts/scripts/socket.io.js');
-  socketIOscript.onload = function() {
-      this.remove();
-  };
-  (document.head || document.documentElement).appendChild(socketIOscript);
+  socketIOscript.id = 'swm-socketIOscript';
+  socketIOscript.src = chrome.runtime.getURL('assetts/crunchyroll-scripts/socket.io.js');
+  document.body.appendChild(socketIOscript);
 
   socketID = serverID;
   let unloadScript = document.createElement('script');
@@ -203,10 +205,10 @@ socket.on('socket-ID', serverID => {
   + "window.addEventListener('beforeunload', () => {" 
   + `newSocket.emit('user-left', {socketID: ${socketID}, username: ${username}, roomCode: ${currRoomCode}});`
   + "});";
-  (document.head||document.documentElement).appendChild(unloadScript);
-  unloadScript.remove();
+  document.body.appendChild(unloadScript);
 });
 
+// Send off the socket emission to create a room with username and current URL
 function createRoom() {
   socket.emit('create-room', { 
     username: username,
@@ -214,12 +216,15 @@ function createRoom() {
   });
 }
 
-// Response from the server after the room is created
+// Response from the server after the room is created for the host
 socket.on('new-room-created', newRoomCode => {
   let giveLink = document.getElementById('hostLink');
   giveLink.innerHTML = `<b style="color:black;font-size:1.1em;">Room Code:</b> ${newRoomCode}`;
   giveLink.style = 'font-size:1.3em;position: absolute;top: 20px;';
   currRoomCode = newRoomCode;
+
+  // Request the socket ID from the server to signal disconnection later
+  socket.emit('get-socket-ID', {message: 'socketRequest'});
 });
 
 // Sends a request to join an existing room
@@ -230,10 +235,14 @@ function joinRoom(roomCode) {
   });
 }
 
+// Receive room joined confirmation for guests
 socket.on('room-joined', newRoomCode => {
   let giveLink = document.getElementById('hostLink');
   giveLink.innerHTML = `<b style="color:black;font-size:1.1em;">Room Code:</b> ${newRoomCode}`;
   giveLink.style = 'font-size:1.3em;position: absolute;top: 20px;';
+
+  // Request the socket ID from the server to signal disconnection later
+  socket.emit('get-socket-ID', {message: 'socketRequest'});
 });
 
 // Sends user's message to the server
@@ -241,6 +250,7 @@ function emitMessage(message) {
   socket.emit('user-message', {username: username, message: message});
 }
 
+// Appends a message received from other users
 socket.on('chat-message', userInfo => {
   appendMessage(userInfo.username, userInfo.message);
 });
