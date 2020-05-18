@@ -193,18 +193,13 @@ function convertTime(inptSeconds) {
 // a script with that event is being injected with the Socket-ID instead
 socket.on('socket-ID', serverID => {
   console.log(`Socket ID: ${serverID}`);
-  let socketIOscript = document.createElement('script');
-  socketIOscript.id = 'swm-socketIOscript';
-  socketIOscript.src = chrome.runtime.getURL('assetts/crunchyroll-scripts/socket.io.js');
-  document.body.appendChild(socketIOscript);
-
   socketID = serverID;
   let unloadScript = document.createElement('script');
   unloadScript.id = 'swm-unloadScript';
-  unloadScript.textContent = "var newSocket = io('https://host.streamwithme.net', { secure: true });"
-  + "window.addEventListener('beforeunload', () => {" 
-  + `newSocket.emit('user-left', {socketID: ${socketID}, username: ${username}, roomCode: ${currRoomCode}});`
-  + "});";
+  unloadScript.textContent = 
+  `window.addEventListener('beforeunload', () => {
+     fetch('https://host.streamwithme.net/disconnected/${currRoomCode}/${socketID}/${username}').then(res => console.log(res));
+   });`;
   document.body.appendChild(unloadScript);
 });
 
@@ -230,8 +225,8 @@ socket.on('new-room-created', newRoomCode => {
 // Sends a request to join an existing room
 function joinRoom(roomCode) {
   socket.emit('join-room', { 
-    username: username,
-    roomCode: roomCode
+    roomCode: roomCode,
+    username: username
   });
 }
 
@@ -240,6 +235,7 @@ socket.on('room-joined', newRoomCode => {
   let giveLink = document.getElementById('hostLink');
   giveLink.innerHTML = `<b style="color:black;font-size:1.1em;">Room Code:</b> ${newRoomCode}`;
   giveLink.style = 'font-size:1.3em;position: absolute;top: 20px;';
+  currRoomCode = newRoomCode;
 
   // Request the socket ID from the server to signal disconnection later
   socket.emit('get-socket-ID', {message: 'socketRequest'});
@@ -247,7 +243,7 @@ socket.on('room-joined', newRoomCode => {
 
 // Sends user's message to the server
 function emitMessage(message) {
-  socket.emit('user-message', {username: username, message: message});
+  socket.emit('user-message', {username: username, message: message, room: currRoomCode});
 }
 
 // Appends a message received from other users

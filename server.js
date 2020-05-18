@@ -19,7 +19,7 @@ io.on('connection', socket => {
     socket.emit('socket-ID', socket.id);
   });
   socket.on('create-room', roomReq => {
-    let newRoomCode = createRoom(roomReq.username, roomReq.roomURL);
+    let newRoomCode = createRoom(socket.id, roomReq.roomURL);
     console.log(`Username: ${roomReq.username}`);
     console.log(`Room Code: ${roomReq.roomURL}`);
     console.log(`Room Code: ${newRoomCode}`);
@@ -30,25 +30,45 @@ io.on('connection', socket => {
     socket.emit('room-URL', roomList[room].roomURL);
   });
   socket.on('join-room', data => {
-    roomList[data.roomCode].users.push(data.username);
+    roomList[data.roomCode].socketIDs.push(socket.id);
     socket.join(`${data.roomCode}`);
     socket.emit('room-joined', data.roomCode);
+    io.to(`${data.roomCode}`).emit('friend-joined', {
+      username: data.username,
+    });
   });
   socket.on('user-message', userInfo => {
     console.log(`${userInfo.username}: ${userInfo.message}`);
-    socket.broadcast.emit('chat-message', {
+    io.to(`${userInfo.room}`).emit('chat-message', {
       username: userInfo.username,
       message: userInfo.message
     });
   });
-  socket.on('user-left', userInfo => {
-    console.log(`${userInfo.username} has left`);
-    let usrSocket = io.sockets.connected[userInfo.socketID];
-    usrSocket.leave(`${userInfo.roomCode}`);
-  })
 });
 
-function createRoom(username, roomURL) {
+app.get('/disconnected/:roomCode/:socketID/:username', function (req, res) {
+  let roomCode = req.params.roomCode;
+  let socketID = req.params.socketID;
+  let username = req.params.username;
+
+  if (roomList[roomCode]) {
+    let index = roomList[roomCode].socketIDs.indexOf(socketID);
+    roomList[roomCode].socketIDs.splice(index, 1);
+  }
+
+  let usrSocket = io.sockets.connected[socketID];
+  usrSocket.leave(`${roomCode}`);
+
+  if (roomList[roomCode].socketIDs.length == 0) {
+    delete roomList[roomCode];
+    console.log(`Room ${roomCode} was deleted`);
+  }
+
+  console.log(`${username} has left room ${roomCode}`);
+  res.send('Successfully disconnected');
+})
+
+function createRoom(socketID, roomURL) {
   let roomCode = generateRoomCode();
   let numLoop = 0;
   while (roomCode in roomList) {
@@ -59,7 +79,7 @@ function createRoom(username, roomURL) {
       break;
     }
   }
-  roomList[roomCode] = { roomURL: roomURL, users: [username] };
+  roomList[roomCode] = { roomURL: roomURL, socketIDs: [socketID] };
   return roomCode;
 }
 
