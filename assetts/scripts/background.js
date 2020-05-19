@@ -1,7 +1,15 @@
-// chrome.extension.onConnect.addListener(function(port) {
-//   console.log("Connected with Popup");
-//   port.onMessage.addListener(function(roomURL) {
-//     chrome.tabs.update(null, {url: roomURL});
-//     port.postMessage('Link Open');
-//   });
-// });
+var currTabId = '';
+var currRoomURL = '';
+
+chrome.extension.onConnect.addListener(function(port) {
+  const socket = io('https://host.streamwithme.net', { secure: true });
+  console.log('Connected with Popup');
+  port.onMessage.addListener(function(roomURL) {
+    socket.emit('get-URL', roomURL);
+  });
+
+  socket.on('room-URL', roomURL => {
+    currRoomURL = roomURL;
+    chrome.tabs.update(null, {url: roomURL});
+  });
+});

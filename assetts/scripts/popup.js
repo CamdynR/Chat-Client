@@ -3,25 +3,10 @@
 let hostBtn = document.getElementById('hostButton');
 let joinBtn = document.getElementById('joinButton');
 let roomCodeForm = document.getElementById('roomCodeForm');
+let joinRequestOpen = false;
 
 var port = chrome.extension.connect({
   name: "Background Communication"
-});
-
-port.onMessage.addListener(function(msg) {
-  if (msg == 'Link Open') {
-    let roomCodeInput = document.getElementById('roomCode');
-    sendMessage({ message: 'JOIN', roomCode: roomCodeInput.value });
-    console.log(`JOIN: ${roomCode}`);
-    //window.close();
-  }
-});
-
-// Sends off a message saying it has been opened, this is to
-// received a message to see if the video player is playing or
-// not
-window.addEventListener('DOMContentLoaded', () => {
-  // sendMessage({ message: 'POPUP OPENED' });
 });
 
 // Event listener for the start button
@@ -46,7 +31,9 @@ roomCodeForm.addEventListener('submit', e => {
   e.preventDefault();
   let roomCodeInput = document.getElementById('roomCode');
   let roomCode = roomCodeInput.value;
-  sendMessage({ message: 'OPENLINK', roomCode: roomCode });
+  joinRequestOpen = true;
+  port.postMessage(roomCode);
+  // sendMessage({ message: 'OPENLINK', roomCode: roomCode });
 })
 
 // @param message: Sends the given message from the extention to the current tab
@@ -60,6 +47,11 @@ function sendMessage(data) {
 // Message handler for messages from the current tab
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    port.postMessage(request.roomURL);
+    if (joinRequestOpen && request == 'Send join request') {
+      let roomCodeInput = document.getElementById('roomCode');
+      sendMessage({ message: 'JOIN', roomCode: roomCodeInput.value });
+      console.log(`JOIN: ${roomCodeInput.value}`);
+      //window.close();
+    }
   }
 );

@@ -3,40 +3,11 @@
 
 const socket = io('https://host.streamwithme.net', { secure: true });
 
-var videoPlayerElem = '';
 var partyOpen = false;
 var overAnHour = false;
 var username = '';
-
-// Code used from MDN MutationObserver Example here
-// URL: https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-// Listens to see when the video element is added to the page,
-// since it's added with a script some time after load
-const targetNode = document.body;
-const config = { childList: true, subtree: true };
-const callback = function (mutationsList, observer) {
-  for (let mutation of mutationsList) {
-    if (mutation.type === 'childList') {
-      if (mutation.addedNodes.length > 0) {
-        if (mutation.addedNodes[0].localName == 'video') {
-          addVideoListeners(mutation.addedNodes[0]);
-          videoPlayerElem = mutation.addedNodes[0];
-          videoPlayerElem.id = 'videoPlayer';
-          if (videoPlayer.duration >= 3600) {
-            overAnHour = true;
-          }
-          observer.disconnect();
-        }
-      }
-    }
-  }
-};
-const observer = new MutationObserver(callback);
-observer.observe(targetNode, config);
-
-window.addEventListener('popstate', function (event) {
-  console.log(location.href);
-});
+var currRoomCode = '';
+var socketID = '';
 
 // @param message: Takes a string and sends that string
 // from thi Content script to the extension
@@ -44,62 +15,26 @@ function sendMessage(message) {
   chrome.runtime.sendMessage(message);
 }
 
-// @param videoPlayer: Takes in a video DOM element
-// Adds listeners to see if the video player is playing or not
-function addVideoListeners(videoPlayer) {
-  // If the video player is playing, tell the extension
-  videoPlayer.addEventListener('play', () => { 
-    console.log('PLAY');
-  });
-
-  // Similarly, if the video player is paused, tell the extension
-  videoPlayer.addEventListener('pause', () => {
-     console.log('PAUSE');
-  });
-}
+// Sends message to pop-up upon loading to initiate chat start.
+// Logic to determine if the join request should be accepted is in popup.js
+sendMessage('Send join request');
 
 // Receives actions (as strings) from media buttons
 chrome.runtime.onMessage.addListener(
-  function(message, sender, sendResponse) {
-    if(message.message == 'OPENLINK') {
-      getRoomURL(message.roomCode);
+  function(message) {
+    if (message.message == 'HOST') {
+      openSidebar(message);
+    } else if (message.message == 'JOIN') {
+      console.log(`JOIN: ${message.roomCode}`);
+      openSidebar(message);
     } else {
-      if(videoPlayerElem != '') {
-        // Controls the video player based on the received actions
-        // if (message.message == 'PLAY') {
-        //   videoPlayerElem.play();
-        // } else if (message.message == 'PAUSE') {
-        //   videoPlayerElem.pause();
-        // } else if (message.message == 'SKIP') {
-        //   videoPlayerElem.currentTime += 10;
-        // } else if (message.message == 'BACK') {
-        //   videoPlayerElem.currentTime -= 10;
-        // } else 
-        if (message.message == 'HOST') {
-          openSidebar(message);
-        } else if (message.message == 'JOIN') {
-          console.log(`JOIN: ${message.roomCode}`);
-          openSidebar(message);
-        } else if (message.message == 'POPUP OPENED') {
-          //sendMessage({
-          //  paused: videoPlayerElem.paused,
-          //  partyOpen: partyOpen
-          //});
-        } else {
-          console.log(message.message);
-        }
-      } else {
-        console.error('Video player element has not yet loaded');
-      }
+      console.log(message.message);
     }
   }
 );
 
 // Opens the initial sidebar, first step
 function openSidebar(message) {
-  let videoUI = document.getElementsByClassName('webPlayerContainer')[0].childNodes[0];
-  videoUI.style = 'height: 100%; width: calc(100% - 20vw);';
-
   // Create the chat window div
   let chatWindow = document.createElement('div');
   chatWindow.id = 'swm-chatWindow';
@@ -120,18 +55,21 @@ function getUserCreateLink(message) {
   let chat = document.getElementById('swm-chatWindow');
   let enterName = document.createElement('div');
   enterName.id = 'swm-enterNameWrapper';
-  enterName.style = 'align-self: center !important;text-align:center';
+  enterName.style = 'align-self: center !important;text-align:center;width: 70%;';
 
   // Create a new element to hold the name prompt text
   let nameText = document.createElement('p');
+  nameText.style = 'font-size: 1.5em;';
   nameText.innerHTML = "Enter your name:";
 
   // Create a new element for the user name input
   let nameForm = document.createElement('form');
   nameForm.id = 'swm-nameForm';
+  nameForm.style = 'margin-top:10px;'
   let nameInp = document.createElement('input');
   nameInp.id = 'swm-nameInput';
   nameInp.type = 'text';
+  nameInp.style = 'border-radius: 5px;font-size: 1.5em;padding: 5px 8px;width: calc(100% - 16px);';
   nameForm.appendChild(nameInp);
 
   // Add them all to each other
@@ -171,7 +109,8 @@ function startChat(message) {
   msgInput.type = 'text !important';
   msgInput.name = 'message !important';
   msgInput.autocomplete = 'off';
-  msgInput.style = 'border:none !important;border-radius:3px !important;font-size:1.3em !important;padding:8px !important;height:25px !important;width:100% !important;';
+  msgInput.spellcheck = 'false';
+  msgInput.style = 'border:none !important;border-radius:3px !important;font-size:1.3em !important;    margin-bottom:10px;padding:3px 8px 1px 8px !important;height:25px !important;width:calc(100% - 16px) !important;';
   msgForm.appendChild(msgInput);
   chatWindow.appendChild(msgArea);
   chatWindow.appendChild(msgForm);
@@ -185,6 +124,7 @@ function startChat(message) {
     msgInput.value = '';
   });
 
+  // Determines now if it's a host or join since setup is the same before this
   if (message.message == 'HOST') {
     createRoom();
     let giveLink = document.createElement('p');
@@ -209,17 +149,32 @@ function stopParty() {
   partyOpen = false;
 }
 
-// Adds event listeners to the chat window to parse user messages
+// @Param User: The user sending the message
+// @Param Message: The message to append
+// Appends the inputted mesasge to the chat window
 function appendMessage(user, message) {
   let msgArea = document.getElementById('swm-msgArea');
   let messageElem = document.createElement('li');
   messageElem.style = 'list-style-type: none;margin-bottom: 5px;';
-  let currTimeVal = videoPlayerElem.currentTime;
+  // let currTimeVal = document.getElementById('player0').currentTime;
+  let currTimeVal = 0;
   messageElem.innerHTML = `<span style="color:gray;cursor:pointer;" onclick="document.getElementById('videoPlayer').currentTime = ${currTimeVal}">${convertTime(currTimeVal)}</span> ${user}: ${message}`;
   msgArea.appendChild(messageElem);
   msgArea.scrollTop = msgArea.scrollHeight;
 }
 
+// Similar to appendMessage, but for system messages
+// such as a user joining/leaving, or some alert like a pause
+function systemMessage(message) {
+  let msgArea = document.getElementById('swm-msgArea');
+  let messageElem = document.createElement('li');
+  messageElem.style = 'list-style-type: none;margin-bottom: 5px;';
+  messageElem.innerHTML = `<span style="color:gray;font-style:italic;">${message}</span>`;
+  msgArea.appendChild(messageElem);
+  msgArea.scrollTop = msgArea.scrollHeight;
+}
+
+// @Param inptSeconds: Raw number of seconds to convert to MM:SS or HH:MM:SS
 // Converts seconds to 00:00:00 or 00:00 depending on length
 function convertTime(inptSeconds) {
   let hours = Math.floor((inptSeconds/60)/60);
@@ -245,7 +200,22 @@ function convertTime(inptSeconds) {
 
 /* Below is all of the WebSocket functionality */
 
-// Sends a request to create a new room
+// Stores Socket-ID to help determine when the user disconnects.
+// Can't access the Window.onbeforeunload from content script so
+// a script with that event is being injected with the Socket-ID instead
+socket.on('socket-ID', serverID => {
+  console.log(`Socket ID: ${serverID}`);
+  socketID = serverID;
+  let unloadScript = document.createElement('script');
+  unloadScript.id = 'swm-unloadScript';
+  unloadScript.textContent = 
+  `window.addEventListener('beforeunload', () => {
+     fetch('https://host.streamwithme.net/disconnected/${currRoomCode}/${socketID}/${username}').then(res => console.log(res));
+   });`;
+  document.body.appendChild(unloadScript);
+});
+
+// Send off the socket emission to create a room with username and current URL
 function createRoom() {
   socket.emit('create-room', { 
     username: username,
@@ -253,40 +223,56 @@ function createRoom() {
   });
 }
 
-// Response from the server after the room is created
+// Response from the server after the room is created for the host
 socket.on('new-room-created', newRoomCode => {
   let giveLink = document.getElementById('hostLink');
   giveLink.innerHTML = `<b style="color:black;font-size:1.1em;">Room Code:</b> ${newRoomCode}`;
   giveLink.style = 'font-size:1.3em;position: absolute;top: 20px;';
+  currRoomCode = newRoomCode;
+  
+  systemMessage('Room has been created');
+
+  // Request the socket ID from the server to signal disconnection later
+  socket.emit('get-socket-ID', {message: 'socketRequest'});
 });
 
 // Sends a request to join an existing room
 function joinRoom(roomCode) {
-  socket.emit('create-room', { 
-    username: username,
-    roomCode: roomCode
+  socket.emit('join-room', { 
+    roomCode: roomCode,
+    username: username
   });
 }
 
+// Receive room joined confirmation for guests
 socket.on('room-joined', newRoomCode => {
   let giveLink = document.getElementById('hostLink');
   giveLink.innerHTML = `<b style="color:black;font-size:1.1em;">Room Code:</b> ${newRoomCode}`;
   giveLink.style = 'font-size:1.3em;position: absolute;top: 20px;';
+  currRoomCode = newRoomCode;
+  
+  systemMessage('You joined the room');
+
+  // Request the socket ID from the server to signal disconnection later
+  socket.emit('get-socket-ID', {message: 'socketRequest'});
 });
 
 // Sends user's message to the server
 function emitMessage(message) {
-  socket.emit('user-message', {username: username, message: message})
+  socket.emit('user-message', {username: username, message: message, room: currRoomCode});
 }
 
+// Appends a message received from other users
 socket.on('chat-message', userInfo => {
   appendMessage(userInfo.username, userInfo.message);
 });
 
-function getRoomURL(roomCode) {
-  socket.emit('get-URL', roomCode);
-}
-
-socket.on('room-URL', roomURL => {
-  sendMessage({ roomURL: roomURL });
+// Appends a message when a friend has joined the room
+socket.on('friend-joined', name => {
+  systemMessage(`${name.username} has joined the room`);
 });
+
+// Appends a message when a friend has left the room
+socket.on('friend-left', name => {
+  systemMessage(`${name.username} has left the room`);
+})
