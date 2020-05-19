@@ -44,6 +44,7 @@
     ]
   },
   "web_accessible_resources": [
-    "assetts/scripts/socket.io.js"
+    "assetts/scripts/socket.io.js",
+    "assetts/styles/crunchyroll-fullscreen.css"
   ]
 }

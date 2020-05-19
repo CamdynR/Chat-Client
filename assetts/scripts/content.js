@@ -22,11 +22,15 @@ sendMessage('Send join request');
 // Receives actions (as strings) from media buttons
 chrome.runtime.onMessage.addListener(
   function(message) {
-    if (message.message == 'HOST') {
+    if (message.message == 'OPEN') {
+      sendMessage({ open: partyOpen });
+    } else if (message.message == 'HOST') {
       openSidebar(message);
     } else if (message.message == 'JOIN') {
       console.log(`JOIN: ${message.roomCode}`);
       openSidebar(message);
+    } else if (message.message == 'END') {
+      leaveParty();
     } else {
       console.log(message.message);
     }
@@ -35,10 +39,19 @@ chrome.runtime.onMessage.addListener(
 
 // Opens the initial sidebar, first step
 function openSidebar(message) {
+  // Apply styles to make crunchyroll go "fullscreen"
+  let path = chrome.extension.getURL('assetts/styles/crunchyroll-fullscreen.css');
+  let link = document.createElement('link');
+  link.id = 'swm-fullscreenStyles';
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = path;
+  document.head.appendChild(link);
+
   // Create the chat window div
   let chatWindow = document.createElement('div');
   chatWindow.id = 'swm-chatWindow';
-  chatWindow.style = 'align-items:flex-end !important;background-color:lightgray !important;display:grid !important;grid-template-rows:18fr 1fr;height:100vh !important;justify-items:center !important;position:fixed !important;right:0px !important;top:0px !important;width:20vw !important;z-index:99999 !important;';
+  chatWindow.style = 'align-items:flex-end !important;background-color:lightgray !important;display:grid !important;grid-template-rows:18fr 1fr;height:100vh !important;justify-items:center !important;position:fixed !important;right:0px !important;top:0px !important;width:288px !important;z-index:2147483647 !important;';
   
   // Grab the page body and append these elements
   let body = document.querySelectorAll('body')[0];
@@ -138,15 +151,35 @@ function startChat(message) {
   }
 }
 
-// Closes the chat window and stops Stream with Me party
-function stopParty() {
-  let videoUI = document.getElementsByClassName('webPlayerContainer')[0].childNodes[0];
-  videoUI.style = 'height: 100%; width: 100%;';
-
+// Closes the chat window and leaves Stream with Me party
+function leaveParty() {
   let chatWindow = document.getElementById('swm-chatWindow');
-  chatWindow.style = 'display:none !important;';
+  let unloadScript = document.getElementById('swm-unloadScript');
+  let fullscreenStyles = document.getElementById('swm-fullscreenStyles');
+  let videoBackdrop = document.getElementById('swm-videoBackdrop');
+
+  if (chatWindow) {
+    chatWindow.parentNode.removeChild(chatWindow);
+  }
+
+  if (unloadScript) {
+    unloadScript.parentNode.removeChild(unloadScript);
+  }
+
+  if (fullscreenStyles) {
+    fullscreenStyles.parentNode.removeChild(fullscreenStyles);
+  }
+
+  if (videoBackdrop) {
+    videoBackdrop.parentNode.removeChild(videoBackdrop);
+  }
 
   partyOpen = false;
+
+  if (username != '' && currRoomCode != '' && socketID != '') {
+    fetch(`https://host.streamwithme.net/disconnected/${currRoomCode}/${socketID}/${username}`)
+    .then(res => console.log(res));
+  }
 }
 
 // @Param User: The user sending the message

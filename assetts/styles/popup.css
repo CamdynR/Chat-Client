@@ -36,6 +36,10 @@
   margin: 15px 0 12px 0;
 }
 
+.buttonRowAreas {
+  grid-template-areas: 'end end' !important;
+}
+
 #streamWM #buttonRow>button {
   align-self: flex-end !important;
   background-color: rgb(107, 107, 107);
@@ -68,43 +72,21 @@
   font-size: 1.2em;
 }
 
+#streamWM #endSession {
+  background-color: #C00 !important;
+  display: none;
+  grid-area: end !important;
+  transition: 0.2s ease all !important;
+  width: 90vw !important;
+}
+
+#streamWM #endSession:hover {
+  background-color: rgb(143, 0, 0) !important;
+  transition: 0.2s ease all !important;
+}
+
 #streamWM #logoIcon {
   width: 30px;
-}
-
-#streamWM #mediaKeys {
-  align-items: center;
-  display: grid;
-  grid-template-areas:
-  'back play forward';
-  justify-items: center;
-  margin-top: 10px;
-  width: 130px;
-}
-
-#streamWM #mediaKeys img {
-  width: 30px;
-}
-
-#streamWM #mediaKeys img:hover {
-  cursor: pointer;
-  filter: opacity(0.6);
-  transition: 0.15s ease all;
-}
-
-#streamWM #mediaKeys img:active {
-  cursor: pointer;
-  filter: opacity(0.3);
-  transition: none;
-}
-
-#streamWM #pauseButton {
-  display: none;
-}
-
-#streamWM #playButton,
-#streamWM #pauseButton {
-  width: 26px !important;
 }
 
 #streamWM #roomCode {
@@ -120,7 +102,6 @@
 #streamWM #roomCode:focus {
   outline: none;
 }
-
 
 #streamWM #roomCodeForm {
   align-items: center;
