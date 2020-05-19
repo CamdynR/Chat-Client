@@ -57,6 +57,9 @@ function openSidebar(message) {
   let body = document.querySelectorAll('body')[0];
   body.insertBefore(chatWindow, body.childNodes[0]);
 
+  // Scroll to the top
+  window.scrollTo(0, 0);
+
   partyOpen = true;
   getUserCreateLink(message);
 }

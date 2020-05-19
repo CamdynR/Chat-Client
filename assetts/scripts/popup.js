@@ -72,6 +72,8 @@ chrome.runtime.onMessage.addListener(
       sendMessage({ message: 'JOIN', roomCode: roomCodeInput.value });
       console.log(`JOIN: ${roomCodeInput.value}`);
       window.close();
+    } else {
+      console.log(request);
     }
   }
 );

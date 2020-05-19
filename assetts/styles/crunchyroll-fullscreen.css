@@ -41,8 +41,8 @@ header#header_beta:hover {
 #showmedia_video {
   background-color: black;
   height: calc((540 / 960) * (100vw - 288px));
-  padding-top: calc(((100vh - ((540 / 960) * (100vw - 288px))) / 2));
-  padding-bottom: calc((100vh - ((540 / 960) * (100vw - 288px))) / 2);
+  padding-top: calc(((100vh - ((540 / 960) * (100vw - 303px))) / 2));
+  padding-bottom: calc((100vh - ((540 / 960) * (100vw - 273px))) / 2);
 }
 
 #showmedia_video_box_wide {

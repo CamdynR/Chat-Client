@@ -1,33 +1,4 @@
 {
-  "manifest_version": 2,
-  "name": "Stream with Me",
-  "description": "Watch anime on Crunchyroll with your friends!",
-  "version": "0.0.1",
-  "icons": {
-    "128": "assetts/images/logo/popcorn-128.png",
-    "48": "assetts/images/logo/popcorn-48.png"
-  },
-  "permissions": [
-    "activeTab", "webRequest", "*://*.crunchyroll.com/*/*", "tabs", "webNavigation"
-  ],
-  "content_scripts": [
-    {
-      "matches": [ "*://static.crunchyroll.com/*/*" ],
-      "all_frames": true,
-      "js": [
-        "assetts/scripts/video.js"]
-        ,
-      "run_at": "document_idle"
-    }, {
-      "matches": [ "*://crunchyroll.com/*/*", "*://www.crunchyroll.com/*/*" ],
-      "all_frames": true,
-      "js": [
-        "assetts/scripts/socket.io.js",
-        "assetts/scripts/content.js"]
-        ,
-      "run_at": "document_idle"
-    }
-  ],
   "background": {
     "scripts": [
       "assetts/scripts/socket.io.js",
@@ -38,11 +9,40 @@
     "default_icon": "assetts/images/logo/popcorn-16.png",
     "default_popup": "popup.html"
   },
+  "content_scripts": [
+    {
+      "all_frames": true,
+      "js": [
+        "assetts/scripts/video.js"
+      ],
+      "matches": [ "https://static.crunchyroll.com/vilos-v2/web/vilos/player.html*" ],
+      "run_at": "document_idle"
+    }, {
+      "all_frames": true,
+      "js": [
+        "assetts/scripts/socket.io.js",
+        "assetts/scripts/content.js"
+      ],
+      "matches": [ "*://crunchyroll.com/*/*", "*://www.crunchyroll.com/*/*" ],
+      "run_at": "document_idle"
+    }
+  ],
+  "description": "Watch anime on Crunchyroll with your friends!",
   "externally_connectable": {
     "matches": [
       "*://*.crunchyroll.com/*/*"
     ]
   },
+  "icons": {
+    "48": "assetts/images/logo/popcorn-48.png",
+    "128": "assetts/images/logo/popcorn-128.png"
+  },
+  "manifest_version": 2,
+  "name": "Stream with Me",
+  "permissions": [
+    "activeTab", "webRequest", "*://*.crunchyroll.com/*/*", "tabs", "webNavigation"
+  ],
+  "version": "0.0.1",
   "web_accessible_resources": [
     "assetts/scripts/socket.io.js",
     "assetts/styles/crunchyroll-fullscreen.css"
