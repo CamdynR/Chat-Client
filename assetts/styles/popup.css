@@ -16,8 +16,7 @@
 #streamWM header {
   align-items: center;
   display: grid;
-  grid-template-areas: 
-  'logo title';
+  grid-template-areas: "logo title";
   grid-template-columns: 1fr 9fr;
   justify-items: center;
 }
@@ -30,17 +29,17 @@
 #streamWM #buttonRow {
   align-items: center;
   display: grid;
-  grid-template-areas: 'host join';
+  grid-template-areas: "host join";
   grid-template-columns: 1fr 1fr;
   justify-items: center;
   margin: 15px 0 12px 0;
 }
 
 .buttonRowAreas {
-  grid-template-areas: 'end end' !important;
+  grid-template-areas: "end end" !important;
 }
 
-#streamWM #buttonRow>button {
+#streamWM #buttonRow > button {
   align-self: flex-end !important;
   background-color: rgb(107, 107, 107);
   border-radius: 5px;
@@ -50,30 +49,29 @@
   width: 120px;
 }
 
-#streamWM #buttonRow>button:hover {
+#streamWM #buttonRow > button:hover {
   background-color: rgb(143, 143, 143);
   cursor: pointer;
   transition: 0.2s ease all;
 }
 
-#streamWM #buttonRow>button:active {
+#streamWM #buttonRow > button:active {
   background-color: rgb(180, 180, 180);
   cursor: pointer;
   transition: none;
 }
 
-
-#streamWM #buttonRow>button:focus {
+#streamWM #buttonRow > button:focus {
   outline: none;
 }
 
-#streamWM #buttonRow>button p {
+#streamWM #buttonRow > button p {
   color: white;
   font-size: 1.2em;
 }
 
 #streamWM #endSession {
-  background-color: #C00 !important;
+  background-color: #c00 !important;
   display: none;
   grid-area: end !important;
   transition: 0.2s ease all !important;
@@ -106,7 +104,7 @@
 #streamWM #roomCodeForm {
   align-items: center;
   display: none;
-  grid-template-areas: 'text input';
+  grid-template-areas: "text input";
   justify-items: center;
   width: 100%;
 }

@@ -1,39 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stream with Me</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stream with Me</title>
 
-  <!-- Stylesheet(s) -->
-  <link rel="stylesheet" type="text/css" href="assetts/styles/popup.css">
-</head>
-<body id="streamWM">
-  <header>
-    <img src="assetts/images/logo/popcorn-128.png" alt="Popcorn Logo" id="logoIcon">
-    <h1 class="logo"> 
-      Stream with Me <span class="version">v0.0.1</span>
-    </h1>
-  </header>
+    <!-- Stylesheet(s) -->
+    <link rel="stylesheet" type="text/css" href="assetts/styles/popup.css" />
+  </head>
+  <body id="streamWM">
+    <header>
+      <img
+        src="assetts/images/icons/popcorn-128.png"
+        alt="Popcorn Logo"
+        id="logoIcon"
+      />
+      <h1 class="logo">Stream with Me <span class="version">v0.0.1</span></h1>
+    </header>
 
-  <div id="buttonRow">
-    <button id="hostButton">
-      <p>HOST</p>
-    </button>
-    <button id="joinButton">
-      <p id="joinText">JOIN</p>
-    </button>
-    <button id="endSession">
-      <p id="endText">LEAVE ROOM</p>
-    </button>
-  </div>
+    <div id="buttonRow">
+      <button id="hostButton">
+        <p>HOST</p>
+      </button>
+      <button id="joinButton">
+        <p id="joinText">JOIN</p>
+      </button>
+      <button id="endSession">
+        <p id="endText">LEAVE ROOM</p>
+      </button>
+    </div>
 
-  <form id="roomCodeForm" data-display="none">
-    <label>Room Code:</label>
-    <input id="roomCode" name="roomCode" type="text" spellcheck="false" autocomplete="off">
-  </form>
+    <form id="roomCodeForm" data-display="none">
+      <label>Room Code:</label>
+      <input
+        id="roomCode"
+        name="roomCode"
+        type="text"
+        spellcheck="false"
+        autocomplete="off"
+      />
+    </form>
 
-  <!-- Scripts -->
-  <script type="module" src="assetts/scripts/popup.js"></script>
-</body>
+    <!-- Scripts -->
+    <script type="module" src="assetts/scripts/popup.js"></script>
+  </body>
 </html>

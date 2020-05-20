@@ -6,7 +6,7 @@
     ]
   },
   "browser_action": {
-    "default_icon": "assetts/images/logo/popcorn-16.png",
+    "default_icon": "assetts/images/icons/popcorn-16.png",
     "default_popup": "popup.html"
   },
   "content_scripts": [
@@ -34,17 +34,18 @@
     ]
   },
   "icons": {
-    "48": "assetts/images/logo/popcorn-48.png",
-    "128": "assetts/images/logo/popcorn-128.png"
+    "48": "assetts/images/icons/popcorn-48.png",
+    "128": "assetts/images/icons/popcorn-128.png"
   },
   "manifest_version": 2,
   "name": "Stream with Me",
   "permissions": [
-    "activeTab", "webRequest", "*://*.crunchyroll.com/*/*", "tabs", "webNavigation"
+    "activeTab", "webRequest", "*://*.crunchyroll.com/*/*", "tabs", "webNavigation", "clipboardRead"
   ],
   "version": "0.0.1",
   "web_accessible_resources": [
     "assetts/scripts/socket.io.js",
-    "assetts/styles/crunchyroll-fullscreen.css"
+    "assetts/styles/crunchyroll-fullscreen.css",
+    "assetts/images/logos/stream-with-me-large.png"
   ]
 }
