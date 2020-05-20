@@ -5,6 +5,8 @@ let joinBtn = document.getElementById("joinButton");
 let endBtn = document.getElementById("endSession");
 let btnRow = document.getElementById("buttonRow");
 let roomCodeForm = document.getElementById("roomCodeForm");
+let pasteAndGo = document.getElementById("pasteAndGo");
+let roomCodeInput = document.getElementById('roomCode');
 let joinRequestOpen = false;
 
 // Open a port of communication with the background script
@@ -29,10 +31,12 @@ joinBtn.addEventListener("click", () => {
   if (roomCodeForm.getAttribute("data-display") == "none") {
     roomCodeForm.style.display = "grid";
     joinText.innerHTML = "CANCEL";
+    joinBtn.classList.add('cancelButtonGray');
     roomCodeForm.setAttribute("data-display", "grid");
   } else {
     roomCodeForm.style.display = "none";
     joinText.innerHTML = "JOIN";
+    joinBtn.classList.remove('cancelButtonGray');
     roomCodeForm.setAttribute("data-display", "none");
   }
 });
@@ -50,6 +54,31 @@ roomCodeForm.addEventListener("submit", (e) => {
   let roomCode = roomCodeInput.value;
   joinRequestOpen = true;
   port.postMessage(roomCode);
+});
+
+// Event listener for the Paste/Go Button
+pasteAndGo.addEventListener("click", () => {
+  if (pasteAndGo.value == "PASTE + GO") {
+    roomCodeInput.focus();
+    document.execCommand('paste');
+    pasteAndGo.type = "submit";
+    pasteAndGo.value = "GO";
+    pasteAndGo.classList.add('waitButtonClass');
+    pasteAndGo.value = "WAIT";
+  } else if (pasteAndGo.value == "GO") {
+    pasteAndGo.type = "submit";
+    pasteAndGo.classList.add('waitButtonClass');
+    pasteAndGo.value = "WAIT";
+  }
+  document.getElementById('loadingNotice').style.display = "block";
+});
+
+roomCodeInput.addEventListener("keyup", () => {
+  if (roomCodeInput.value != '') {
+    pasteAndGo.value = "GO";
+  } else {
+    pasteAndGo.value = "PASTE + GO";
+  }
 });
 
 // @param message: Sends the given message from the extention to the current tab

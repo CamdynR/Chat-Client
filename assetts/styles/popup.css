@@ -32,33 +32,74 @@
   grid-template-areas: "host join";
   grid-template-columns: 1fr 1fr;
   justify-items: center;
-  margin: 15px 0 12px 0;
+  margin: 15px auto 12px auto;
+  width: 91.8%;
 }
 
 .buttonRowAreas {
   grid-template-areas: "end end" !important;
 }
 
+.cancelButtonGray {
+  background-color: #949494 !important;
+}
+
+.cancelButtonGray:hover {
+  background-color: #7a7a7a !important;
+}
+
+.cancelButtonGray:active {
+  background-color: #646464 !important;
+}
+
+.waitButtonClass {
+  background-color: #949494 !important;
+}
+
+.waitButtonClass:hover {
+  cursor: wait !important;
+}
+
+#streamWM #hostButton {
+  justify-self: flex-start;
+}
+
+#streamWM #joinButton {
+  justify-self: flex-end;
+}
+
+#streamWM #hostButton,
+#streamWM #joinButton {
+  background-color: #f47521;
+}
+
 #streamWM #buttonRow > button {
   align-self: flex-end !important;
-  background-color: rgb(107, 107, 107);
   border-radius: 5px;
   border: none;
   height: 30px;
   transition: 0.2s ease all;
-  width: 120px;
+  width: 124px;
 }
 
 #streamWM #buttonRow > button:hover {
-  background-color: rgb(143, 143, 143);
   cursor: pointer;
   transition: 0.2s ease all;
 }
 
+#streamWM #hostButton:hover,
+#streamWM #joinButton:hover {
+  background-color: #d15808;
+}
+
 #streamWM #buttonRow > button:active {
-  background-color: rgb(180, 180, 180);
   cursor: pointer;
   transition: none;
+}
+
+#streamWM #hostButton:active,
+#streamWM #joinButton:active {
+  background-color: #ac4602;
 }
 
 #streamWM #buttonRow > button:focus {
@@ -83,8 +124,42 @@
   transition: 0.2s ease all !important;
 }
 
+#streamWM #loadingNotice {
+  display: none;
+  font-size: 1.2em;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
 #streamWM #logoIcon {
   width: 30px;
+}
+
+#streamWM #pasteAndGo {
+  border: none;
+  border-radius: 3px;
+  background-color: rgb(0, 160, 0);
+  color: white;
+  font-size: 1.3em;
+  height: 26px;
+  justify-self: flex-end;
+  transition: 0.2s ease all;
+  width: 110px;
+}
+
+#streamWM #pasteAndGo:focus {
+  outline: none;
+}
+
+#streamWM #pasteAndGo:hover {
+  background-color: rgb(0, 129, 0);
+  cursor: pointer;
+  transition: 0.2s ease all;
+}
+
+#streamWM #pasteAndGo:active {
+  background-color: rgb(0, 105, 0);
+  transition: none;
 }
 
 #streamWM #roomCode {
@@ -93,8 +168,9 @@
   font-family: Arial, Helvetica, sans-serif;
   font-size: 1.3em;
   height: 20px;
+  justify-self: flex-start;
   padding: 3px 6px;
-  width: 170px;
+  width: 128px;
 }
 
 #streamWM #roomCode:focus {
@@ -106,7 +182,8 @@
   display: none;
   grid-template-areas: "text input";
   justify-items: center;
-  width: 100%;
+  margin: 0 auto 13px auto;
+  width: 91.8%;
 }
 
 #streamWM #roomCodeForm label {

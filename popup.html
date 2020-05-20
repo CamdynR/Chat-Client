@@ -30,16 +30,20 @@
       </button>
     </div>
 
-    <form id="roomCodeForm" data-display="none">
-      <label>Room Code:</label>
+    <form id="roomCodeForm" data-display="none"> 
       <input
         id="roomCode"
         name="roomCode"
         type="text"
         spellcheck="false"
         autocomplete="off"
+        placeholder="Room code"
+        maxlength="7"
       />
+    <input id="pasteAndGo" type="button" value="PASTE + GO" />
     </form>
+
+    <p id="loadingNotice">Loading, please don't click away...</p>
 
     <!-- Scripts -->
     <script type="module" src="assetts/scripts/popup.js"></script>
