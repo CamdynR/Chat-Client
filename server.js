@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+var cors = require('cors');
 var server = app.listen(process.env.PORT || 3000, "host.streamwithme.net", listen);
 
 function listen() {
@@ -30,12 +31,7 @@ io.on('connection', socket => {
     socket.emit('new-room-created', newRoomCode);
     socket.join(`${newRoomCode}`);
   });
-
-  // Fetches the URL of the room to link people who are joining
-  socket.on('get-URL', room => {
-    socket.emit('room-URL', roomList[room].roomURL);
-  });
-
+  
   // Joins users to a room after the URL has been fetched and loaded
   socket.on('join-room', data => {
     roomList[data.roomCode].socketIDs.push(socket.id);
@@ -89,7 +85,17 @@ app.get('/disconnected/:roomCode/:socketID/:username', function (req, res) {
 
   // Respond with a successful deletion
   res.send('Successfully disconnected');
-})
+});
+
+// Fetches the URL of the room to link people who are joining
+app.get('/roomURL/:roomCode', cors(), function (req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (roomList[req.params.roomCode]) {
+    res.status(200).json({ url: `${roomList[req.params.roomCode].roomURL}` });
+  } else {
+    res.status(404).json({ error: `${req.params.roomCode} is not a valid room` });
+  }
+});
 
 // @param socketID: The socketID of the person making the room
 // @param roomURL: The Video URL that the room is to be hosted in
