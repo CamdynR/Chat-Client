@@ -30,8 +30,6 @@ chrome.runtime.onMessage.addListener(function (message) {
     openSidebar(message);
   } else if (message.message == "END") {
     leaveParty();
-  } else {
-    console.log(message.message);
   }
 });
 
@@ -296,6 +294,28 @@ function convertTime(inptSeconds) {
   return convertedTime;
 }
 
+/* This Section Deals with the message passing between this script, background, and video
+   so that the app can monitor/control the video player to play all videos in sync */
+
+/* Listen for messages from background script (which relays it from the video script)*/
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+  /* If the received message has the expected format... */
+  if (msg.to && (msg.to == 'content_js')) {
+    if (msg.msg == 'PLAY' || msg.msg == 'PAUSE') {
+      console.log(msg.msg);
+      socket.emit('change-video-state', {state: msg.msg, time: '00:00', room: currRoomCode});
+    }
+  }
+});
+
+// This function sends a message to the background script, 
+// which relays it to the video script
+function sendToVideoScript(message) {
+  console.log(`Send to video script: ${message}`);
+  chrome.runtime.sendMessage({ from: 'content', msg: message});
+}
+
+
 /* Below is all of the WebSocket functionality */
 
 // Stores Socket-ID to help determine when the user disconnects.
@@ -402,4 +422,13 @@ socket.on("friend-joined", (name) => {
 // Appends a message when a friend has left the room
 socket.on("friend-left", (name) => {
   systemMessage(`${name.username} has left the room`);
+});
+
+// Receives the other users' video state and relays it to the
+// background script, which relays it to the video script, which
+// has access to the video player element (it's in an iframe)
+socket.on("new-video-state", (videoInfo) => {
+  if (videoInfo.state == 'PLAY' || videoInfo.state == 'PAUSE') {
+    sendToVideoScript(videoInfo.state);
+  }
 });

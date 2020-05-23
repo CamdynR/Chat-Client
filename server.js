@@ -50,6 +50,15 @@ io.on('connection', socket => {
       message: userInfo.message
     });
   });
+
+  // User video player handler
+  socket.on('change-video-state', videoInfo => {
+    console.log(videoInfo.state);
+    socket.to(`${videoInfo.room}`).emit('new-video-state', {
+      state: videoInfo.state,
+      time: videoInfo.time
+    });
+  });
 });
 
 // Route to handle people leaving the room
