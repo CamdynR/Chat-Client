@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/CamdynR/Stream-with-Me#readme",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "socket.io": "^2.3.0"
   }
 }
